@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Unload Pinned Tabs (Arc-style)",
+  "name": "Pinned Tab Unloader",
   "version": "1.0.0",
   "description": "When closing a pinned tab (Ctrl+W), it gets unloaded instead of being closed/unpinned, like on Arc.",
   "permissions": ["tabs", "commands", "contextMenus", "storage"],
