@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Unload Pinned Tabs (Arc-style)",
   "version": "1.0.0",
-  "description": "Quand on ferme un onglet épinglé (Ctrl+W), il est déchargé au lieu d'être fermé/désépinglé, comme sur Arc.",
+  "description": "When closing a pinned tab (Ctrl+W), it gets unloaded instead of being closed/unpinned, like on Arc.",
   "permissions": ["tabs", "commands", "contextMenus", "storage"],
   "background": {
     "service_worker": "background.js"
@@ -16,7 +16,7 @@
     }
   ],
   "action": {
-    "default_title": "Décharger cet onglet épinglé"
+    "default_title": "Unload this pinned tab"
   },
   "commands": {
     "close-or-unload-tab": {
@@ -24,7 +24,7 @@
         "default": "Ctrl+W",
         "mac": "Command+W"
       },
-      "description": "Fermer l'onglet, ou le décharger s'il est épinglé"
+      "description": "Close the tab, or unload it if it's pinned"
     }
   }
 }

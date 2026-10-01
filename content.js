@@ -1,8 +1,8 @@
-// Filet de sécurité : tente d'intercepter Ctrl+W au niveau de la page.
-// Note : la plupart des navigateurs basés sur Chromium gèrent Ctrl+W au
-// niveau du processus navigateur, donc preventDefault() ici ne bloquera pas
-// toujours la fermeture. La vraie solution est le raccourci "commands" dans
-// background.js, configurable via helium://extensions/shortcuts.
+// Safety net: attempts to intercept Ctrl+W at the page level.
+// Note: most Chromium-based browsers handle Ctrl+W at the browser process
+// level, so preventDefault() here won't always block the close. The real
+// fix is the "commands" shortcut in background.js, configurable via
+// helium://extensions/shortcuts.
 window.addEventListener(
   "keydown",
   (event) => {
@@ -17,7 +17,7 @@ window.addEventListener(
     try {
       chrome.runtime.sendMessage({ type: "ctrl-w-pressed" });
     } catch (e) {
-      // contexte d'extension invalidé (rechargement de l'extension) : ignorer
+      // extension context invalidated (extension reload): ignore
     }
   },
   { capture: true }

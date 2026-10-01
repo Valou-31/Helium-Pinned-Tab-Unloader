@@ -1,9 +1,8 @@
-// Coeur de l'extension : si l'onglet actif est épinglé, on le décharge (discard)
-// au lieu de le fermer. Sinon, comportement normal (fermeture).
-// Dans les deux cas, on revient ensuite sur le dernier onglet actif de la
-// fenêtre (en se basant sur tab.lastAccessed, fourni nativement par
-// Chromium), en ignorant les onglets déchargés. S'il n'y a aucun candidat,
-// on ouvre un nouvel onglet.
+// Core logic: if the active tab is pinned, unload (discard) it instead of
+// closing it. Otherwise, fall back to normal behavior (closing the tab).
+// In both cases, we then switch focus to the most recently accessed tab in
+// the window (using tab.lastAccessed, provided natively by Chromium),
+// skipping discarded tabs. If there's no candidate, we open a new tab.
 
 async function activateLastUsedOrCreate(windowId, excludeTabId) {
   const tabs = await chrome.tabs.query({ windowId });
@@ -20,7 +19,7 @@ async function activateLastUsedOrCreate(windowId, excludeTabId) {
   try {
     await chrome.tabs.create({ windowId });
   } catch (e) {
-    console.warn("Impossible d'ouvrir un nouvel onglet :", e);
+    console.warn("Could not open a new tab:", e);
   }
 }
 
@@ -32,21 +31,21 @@ async function closeOrUnloadTab(tab) {
   const tabId = tab.id;
 
   if (tab.pinned) {
-    // Un onglet déjà déchargé n'a rien à faire de plus.
+    // An already-discarded tab has nothing left to do.
     if (tab.discarded) return;
     try {
       await chrome.tabs.discard(tabId);
     } catch (e) {
-      // Certains onglets (chrome://, pages avec formulaire non sauvegardé, etc.)
-      // ne peuvent pas être déchargés : on ne fait rien plutôt que de les fermer.
-      console.warn("Impossible de décharger l'onglet épinglé :", e);
+      // Some tabs (chrome://, pages with unsaved form data, etc.) can't be
+      // discarded: do nothing rather than closing them.
+      console.warn("Could not discard pinned tab:", e);
       return;
     }
   } else {
     try {
       await chrome.tabs.remove(tabId);
     } catch (e) {
-      console.warn("Impossible de fermer l'onglet :", e);
+      console.warn("Could not close tab:", e);
       return;
     }
   }
@@ -56,32 +55,32 @@ async function closeOrUnloadTab(tab) {
   }
 }
 
-// 1) Raccourci clavier déclaré via chrome.commands (si Helium autorise la
-//    réassignation de Ctrl+W dans chrome://extensions/shortcuts).
+// 1) Keyboard shortcut declared via chrome.commands (if Helium allows
+//    reassigning Ctrl+W in chrome://extensions/shortcuts).
 chrome.commands.onCommand.addListener(async (command) => {
   if (command !== "close-or-unload-tab") return;
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   await closeOrUnloadTab(tab);
 });
 
-// 2) Filet de sécurité : si un content script détecte Ctrl+W et arrive à
-//    empêcher le comportement par défaut du navigateur, il nous le signale.
+// 2) Safety net: if a content script detects Ctrl+W and manages to prevent
+//    the browser's default behavior, it notifies us.
 chrome.runtime.onMessage.addListener((message, sender) => {
   if (message && message.type === "ctrl-w-pressed" && sender.tab) {
     closeOrUnloadTab(sender.tab);
   }
 });
 
-// 3) Action de la barre d'outils : décharger manuellement l'onglet épinglé actif.
+// 3) Toolbar action: manually unload the active pinned tab.
 chrome.action.onClicked.addListener(async (tab) => {
   await closeOrUnloadTab(tab);
 });
 
-// 4) Menu contextuel sur les onglets épinglés.
+// 4) Context menu on pinned tabs.
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "unload-pinned-tab",
-    title: "Décharger cet onglet épinglé",
+    title: "Unload this pinned tab",
     contexts: ["action"]
   });
 });
