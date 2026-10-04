@@ -3,16 +3,20 @@
 // level, so preventDefault() here won't always block the close. The real
 // fix is the "commands" shortcut in background.js, configurable via
 // helium://extensions/shortcuts.
+
+function isCtrlW(event) {
+  return (
+    (event.ctrlKey || event.metaKey) &&
+    !event.shiftKey &&
+    !event.altKey &&
+    (event.key === "w" || event.key === "W")
+  );
+}
+
 window.addEventListener(
   "keydown",
   (event) => {
-    const isCtrlW =
-      (event.ctrlKey || event.metaKey) &&
-      !event.shiftKey &&
-      !event.altKey &&
-      (event.key === "w" || event.key === "W");
-
-    if (!isCtrlW) return;
+    if (!isCtrlW(event)) return;
 
     try {
       chrome.runtime.sendMessage({ type: "ctrl-w-pressed" });
@@ -22,3 +26,9 @@ window.addEventListener(
   },
   { capture: true }
 );
+
+// Exposed for tests only (Node's CommonJS `module` doesn't exist in the
+// browser's content-script context, so this is a no-op there).
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { isCtrlW };
+}

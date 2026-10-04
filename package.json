@@ -1,0 +1,8 @@
+{
+  "name": "pinned-tab-unloader",
+  "private": true,
+  "description": "Tests only - the extension itself has no build step and no dependencies.",
+  "scripts": {
+    "test": "node --test"
+  }
+}
